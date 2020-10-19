@@ -1,2 +1,2 @@
 # ReInvent2020_labs
-accompanying labs for ReInvent2020-security session
+Pattern3 - ReInvent2020 Automating Security The Well-Architected Way Accompanying Labs
