@@ -44,3 +44,8 @@ Now that the stack is build, you can move to step 4 where we create the document
 
 
 5. To fully automate this, create an event trigger using EventBridge. (Event bridge feeding into the AWS Systems Manager )
+
+Run the SSM automation document.
+
+Note : To monitor the deployment, update the ./watchlist.sh change the URL with your ELB URL.
+Run in throughout your Deployment 
