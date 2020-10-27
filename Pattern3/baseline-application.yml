@@ -8,8 +8,9 @@ Parameters:
     Type: String
     Default: "2"
   AmazonMachineImage:
-    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-    Default: "testami"
+    Type: String
+    # Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    # Default: "testami"
 
 Outputs:
   OutputPattern3ALB:
@@ -63,7 +64,7 @@ Resources:
       UnhealthyThresholdCount: 5
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
-          Value: 0
+          Value: 60
       VpcId: 
         Fn::ImportValue:
           !Sub "${BaselineVpcStack}-VpcId"
