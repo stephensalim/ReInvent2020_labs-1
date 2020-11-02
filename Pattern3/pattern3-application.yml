@@ -11,24 +11,6 @@ Parameters:
     Type: String
     # Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     # Default: "testami"
-
-Outputs:
-  OutputPattern3ALB:
-    Description: Elastic Load Balancer
-    Value: !Ref Pattern3ALB
-    Export:
-      Name: !Sub "${AWS::StackName}-ALB"
-  OutputPattern3ELBSecurityGroup:
-    Description: Elastic Load Balancer Security Group
-    Value: !Ref Pattern3ELBSecurityGroup
-    Export:
-      Name: !Sub "${AWS::StackName}-ELBSecurityGroup"
-  OutputPattern3InstanceSecurityGroup:
-    Description: Instance Security Group
-    Value: !Ref Pattern3InstanceSecurityGroup
-    Export:
-      Name: !Sub "${AWS::StackName}-InstanceSecurityGroup"
-
 Resources:
 #----------------------------------------------------------------------------------------
 # Build load balancer.
@@ -293,3 +275,23 @@ Resources:
             Action:
               - sts:AssumeRole
       Path: /
+
+Outputs:
+  OutputPattern3ALBDNSName:
+    Description: The DNSName of the backup load balancer
+    Value: !GetAtt Pattern3ALB.DNSName
+  OutputPattern3ALB:
+    Description: Application Load Balancer
+    Value: !Ref Pattern3ALB
+    Export:
+      Name: !Sub "${AWS::StackName}-ALB"
+  OutputPattern3ELBSecurityGroup:
+    Description: Elastic Load Balancer Security Group
+    Value: !Ref Pattern3ELBSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-ELBSecurityGroup"
+  OutputPattern3InstanceSecurityGroup:
+    Description: Instance Security Group
+    Value: !Ref Pattern3InstanceSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-InstanceSecurityGroup"

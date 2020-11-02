@@ -31,7 +31,7 @@ aws --region ap-southeast-2 cloudformation create-stack --stack-name <name of yo
 ```
 If you decide to deploy the stack from the console, ensure that you name the stack 'pattern3-base' as this is referenced by other stacks later in the lab.
 
-When the CloudFormation template deployment is completed, note the outputs as they may be required later and move to section 2.
+When the CloudFormation template deployment is completed, note the outputs as they may be required later and move to section 2. You will need the VPC details for later.
 
 
 ## 2. Deploy the Application Infrastructure
@@ -45,15 +45,84 @@ The second section of the lab will build out the application stack within the VP
 To deploy the second CloudFormation template, you can either deploy directly from the command line or via the console. To deploy from the command line, run the following command:
 
 ```
-aws --region ap-southeast-2 cloudformation create-stack --stack-name <name of your application stack> --template-body file://baseline-application.yml --parameters ParameterKey=AmazonMachineImage,ParameterValue=ami-0f96495a064477ffb	ParameterKey=BaselineVpcStack,ParameterValue=pattern3-base 
+aws --region ap-southeast-2 cloudformation create-stack --stack-name pattern3-app --template-body file://baseline-application.yml --parameters ParameterKey=AmazonMachineImage,ParameterValue=ami-0f96495a064477ffb	ParameterKey=BaselineVpcStack,ParameterValue=pattern3-base 
 ```
 
 Note that for the AmazonMachineImage, please use an AMI ID which represents an Amazon Linux 2 machine image from Sydney region (the userdata is only tested with Amazon Linux 2).
 
-If you decide to deploy rhe stack from the console, ensure that you provide the correct stack name from section 1 (we have used pattern3-base for the example). In addition, you will need to provide the AMI ID of an Amazon Linux 2 image, which you can find from the EC2 console.
+If you decide to deploy rhe stack from the console, ensure that you provide the correct stack name from section 1 (we have used pattern3-base for the example). In addition, you will need to provide the AMI ID of an Amazon Linux 2 image, which you can find from the EC2 console. Dont forget to click the tickbox at the bottom of the screen to acknowledge that CloudFormation will create resources.
 
 When the CloudFormation template deployment is completed, note the outputs as they may be required later.
 
+You can check that the ALB deployment has been successful by clicking on the DNS name in the output window to show the instance web server that the ALB is pointing to as shown here:
+
+![Section2 CloudFormation Output](images/section2/section2-pattern3-output-dnsname.png)
+Format: ![Alt Text](url)
+
+If you have configured everything correctly, you should be able to view a webpage with 'Welcome to Re:Invent 2020 The Well Architected Way' as the page title. 
+
+In addition, adding a simple 'details.php' to the end of your DNS address should list the packages currently available, together with the AMI which has been used to create the instance as follows:
+
+![Section2 ALB Details.php Page ](images/section2/section2-pattern3-output-detailsphp.png)
+Format: ![Alt Text](url)
+
+When you have confirmed that the application deployment was successful, move to section 3 which will deploy your AMI Builder Pipeline.
+
+
+## 3. Deploy the AMI Builder Pipeline.
+1. Create IAM role
+
+EC2 
+- arn:aws:iam::aws:policy/EC2InstanceProfileForImageBuilder
+- arn:aws:iam::aws:policy/AmazonS3FullAccess
+- S3 full access is provided and needs to be locked down.
+
+Call it pattern3-recipe-instance-role.
+
+2. Create S3 bucket:
+
+teratim-pattern3-logging-bucket
+
+3. Create component.
+
+done
+
+4. Create a standard security group which is empty.
+
+- no imbound role, just leave as default.
+
+4. Create recipe.
+
+In image builder, create a recipe.
+
+Call it :
+
+pattern3-pipeline-ImageRecipe
+manually include the AmazonLInux 2 EC2 template here: ami-0f96495a064477ffb
+Or manually note one from the EC2 console.
+
+
+Call out an SSM automation command called UpdateOS.
+
+
+5. Build pipeline
+
+In the console, recipe, actions, create pipeline from this recipe.
+
+Give it a name and specify our role name from step (1).
+
+Use m5.large. The type of instance will define how long it will take to bootstrap your instance. If you use an m5 large it will take 20-30 miunutes, but if you want to save costs, please use a smaller instance and wait a bit longer!
+
+You will need to specify the VPC details from section 1.
+
+Click on actions->run pipeline.
+
+Now the pipeline is calling the SSM automation document and executing the EC2 image build.
+
+Go and check in System Manager/Automation document and 
+
+
+Build the systems manager document to orchestrate the execution of the image build and the deployment of our image into our cluster.
 
 
 ------------------------------------------
