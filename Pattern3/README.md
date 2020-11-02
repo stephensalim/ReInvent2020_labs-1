@@ -1,6 +1,6 @@
-Stephen and Tim Lab - Pattern 3
+# Stephen and Tim Lab - Pattern 3
 
-##Introduction##
+## Introduction 
 
 Patching is a vitual component to any security strategy in terms of ensuring that your compute environments are operating with the latest code revisions available. This ensures that all security updates are applied which reduces the potential attack surface of your workload. In terms of compliance, almost all frameworks will require evidence of a patching strategy of some sort, so ensuring that you have an automated solution in place will reduce your operational overhead, patch your environment to the latest operating system code and also provide the appropriate logging which could assist you during a future compliance audit.
 
@@ -21,7 +21,7 @@ For ease of use, we have used Sydney as the default deployment region, so ensure
 
 The first section of the lab will build out a VPC, together with public and private subnets across two AZs. In addition, we will create an internet gateway and NAT gateway and the necessary routes from both public and private subnets. When we are completed our initial environment will look like this:
 
-![Section1 Base Architecture](/images/section1/section1-pattern3-base-architecture.png)
+![Section1 Base Architecture](images/section1/section1-pattern3-base-architecture.png)
 Format: ![Alt Text](url)
 
 To deploy the first CloudFormation template, you can either deploy directly from the command line or via the console. To deploy from the command line, ensure that you have appropriate access keys in place and run the following command:
