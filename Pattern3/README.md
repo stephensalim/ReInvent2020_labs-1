@@ -134,7 +134,9 @@ Enter 'pattern3-recipe-instance-role' for the Role Name and add a description. T
 
 ### 3.2. Create an S3 Bucket.
 
-We use an S3 bucket for logging the EC2 Image Build process, so lets create one. As S3 is a global namespace, please use the naming convention pattern3-reinvent2020-logging with a unique UUID number at the end. You can achieve this on a mac or UNIX terminal by setting a variable called $bucket as follows:
+We use an S3 bucket for logging the EC2 Image Build process, so lets create one. 
+
+As S3 is a global namespace, please use the naming convention pattern3-reinvent2020-logging with a unique UUID number at the end. You can achieve this on a mac or UNIX terminal by setting a variable called $bucket as follows:
 
 ```
 bucket=pattern3-reinvent2020-logging-`uuidgen | awk -F- '{print tolower($1$2$3)}'`
