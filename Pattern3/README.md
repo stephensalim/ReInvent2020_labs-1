@@ -102,8 +102,55 @@ Alternatively, if you want to go through the process manually to get an understa
 * Create an Image Builder Recipe.
 * Create an Image Builder Pipeline.
 
+---
 
-1. Create IAM role
+### 3.1. Create IAM role
+
+Firstly we will need to create an IAM role for use by the Image Builder. To do this, navigate to IAM within the console and select 'role' from the left hand panel and then select 'create role' as shown:
+
+![Section3 IAM Role Creation ](images/section3/section3-pattern3-role-create.png)
+
+Select 'AWS Service' from the types of trusted entities and then select 'EC2', and 'next: Permissions' as shown:
+
+![Section3 IAM Role for EC2 Trusted Entity ](images/section3/section3-pattern3-role-create2.png)
+
+Using the filter, add the following policies:
+
+* EC2InstanceProfileForImageBuilder
+* AmazonS3FullAccess
+* AmazonSSMManagedInstanceCore 
+
+and click 'Next:Tags'.
+
+On the next screen click 'Next:Review'.
+
+Enter 'pattern3-recipe-instance-role' for the Role Name and add a description. The three policies listed above should be added as follows:
+
+
+![Section3 IAM Role Summary ](images/section3/section3-pattern3-role-summary.png)
+
+
+---
+
+### 3.2. Create an S3 Bucket.
+
+We use an S3 bucket for logging the EC2 Image Build process, so lets create one. As S3 is a global namespace, please use the naming convention pattern3-reinvent2020-logging with a unique UUID number at the end. You can achieve this on a mac or UNIX terminal by setting a variable called $bucket as follows:
+
+```
+bucket=pattern3-reinvent2020-logging-`uuidgen | awk -F- '{print tolower($1$2$3)}'`
+echo $bucket
+```
+
+Hopefully you should have a bucket name returned to you which you can then use to create the bucket as follows:
+
+```
+aws s3 mb s3://$bucket --region ap-southeast-2 
+```
+
+Alternatively you can use any randomized string at the end of the standard bucket name and create a bucket manually.
+
+
+
 
 EC2 
 - arn:aws:iam::aws:policy/EC2InstanceProfileForImageBuilder
