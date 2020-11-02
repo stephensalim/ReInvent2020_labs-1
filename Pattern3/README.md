@@ -1,4 +1,5 @@
-# Stephen and Tim Lab - Pattern 3
+# ReInvent2020 Security The Well-Architected Way with WeInvest - Pattern 3
+### By Tim Robinson and Stephen Salim
 
 ## Introduction 
 
@@ -42,26 +43,29 @@ The second section of the lab will build out the application stack within the VP
 * Autoscaling Group and Launch Configuration.
 * Security Groups for the ALB and instances.
 
+This will add to your base architecture as follows:
+
+![Section2 Application Architecture ](images/section2/section2-pattern3-app-architecture.png)
+
 To deploy the second CloudFormation template, you can either deploy directly from the command line or via the console. To deploy from the command line, run the following command:
 
 ```
 aws --region ap-southeast-2 cloudformation create-stack --stack-name pattern3-app --template-body file://baseline-application.yml --parameters ParameterKey=AmazonMachineImage,ParameterValue=ami-0f96495a064477ffb	ParameterKey=BaselineVpcStack,ParameterValue=pattern3-base 
 ```
 
-Note that for the AmazonMachineImage, please use an AMI ID which represents an Amazon Linux 2 machine image from Sydney region (the userdata is only tested with Amazon Linux 2).
+Note that for the AmazonMachineImage, please use an AMI ID which represents an Amazon Linux 2 machine image from the Sydney region (ap-southeast-2).
 
 If you decide to deploy rhe stack from the console, ensure that you provide the correct stack name from section 1 (we have used pattern3-base for the example). In addition, you will need to provide the AMI ID of an Amazon Linux 2 image, which you can find from the EC2 console. Dont forget to click the tickbox at the bottom of the screen to acknowledge that CloudFormation will create resources.
 
 When the CloudFormation template deployment is completed, note the outputs as they may be required later.
 
-You can check that the ALB deployment has been successful by clicking on the DNS name in the output window to show the instance web server that the ALB is pointing to as shown here:
+You can check that the ALB deployment has been successful by clicking on the DNS name of the ALB which can be found in the outputs to the CloudFormation stack as follows:
 
 ![Section2 CloudFormation Output](images/section2/section2-pattern3-output-dnsname.png)
-Format: ![Alt Text](url)
 
 If you have configured everything correctly, you should be able to view a webpage with 'Welcome to Re:Invent 2020 The Well Architected Way' as the page title. 
 
-In addition, adding a simple 'details.php' to the end of your DNS address should list the packages currently available, together with the AMI which has been used to create the instance as follows:
+Adding a simple 'details.php' to the end of your DNS address will list the packages currently available, together with the AMI which has been used to create the instance as follows:
 
 ![Section2 ALB Details.php Page ](images/section2/section2-pattern3-output-detailsphp.png)
 
