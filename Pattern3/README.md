@@ -74,6 +74,23 @@ When you have confirmed that the application deployment was successful, move to 
 
 
 ## 3. Deploy the AMI Builder Pipeline.
+
+This section will concentrate on building out the AMI Builder Pipeline. Upon completion, we will add an EC2 Image Builder component, which will be responsible for taking the existing AMI Image which we have been using within our ALB configuration, building out a temporary instance before patching it and saving the image for deployment into a new autoscaling configuration. We can then use CloudFormation to update our existing stack to ensure that we are now pointing to the new autoscaling group from the application load balancer as shown in the following diagram:
+
+![Section3 Pipeline Architecture Diagram ](images/section3/section3-pattern3-pipeline-architecture.png)
+
+
+If you are keen to complete the lab quickly, simply deploy the template for section3 which can be found [here](https://www.google.com "Section3 template").
+
+Alternatively, if you want to go through the process manually, then we will need to complete the following subtasks:
+
+* Create an IAM role for use by the EC2 Image Builder.
+* Create an S3 bucket for logging purposes.
+* Create an Image Builder Component.
+* Create an Image Builder Recipe.
+* Create an Image Builder Pipeline.
+
+
 1. Create IAM role
 
 EC2 
