@@ -25,7 +25,11 @@ The first section of the lab will build out a VPC, together with public and priv
 ![Section1 Base Architecture](images/section1/section1-pattern3-base-architecture.png)
 Format: ![Alt Text](url)
 
-To deploy the first CloudFormation template, you can either deploy directly from the command line or via the console. To deploy from the command line, ensure that you have appropriate access keys in place and run the following command:
+To deploy the first CloudFormation template, you can either deploy directly from the command line or via the console. 
+
+You can get the template [here](https://github.com/skinnytimmy/ReInvent2020_labs/blob/Pattern3/Pattern3/templates/section1/pattern3-base.yml "Section1 template").
+
+To deploy from the command line, ensure that you have appropriate access keys in place and run the following command:
 
 ```
 aws --region ap-southeast-2 cloudformation create-stack --stack-name <name of your vpc stack> --template-body file://pattern3-base.yml
@@ -47,7 +51,11 @@ This will add to your base architecture as follows:
 
 ![Section2 Application Architecture ](images/section2/section2-pattern3-app-architecture.png)
 
-To deploy the second CloudFormation template, you can either deploy directly from the command line or via the console. To deploy from the command line, run the following command:
+To deploy the second CloudFormation template, you can either deploy directly from the command line or via the console.
+
+You can get the template [here](https://github.com/skinnytimmy/ReInvent2020_labs/blob/Pattern3/Pattern3/templates/section3/pattern3-app.yml "Section2 template").
+
+ To deploy from the command line, run the following command:
 
 ```
 aws --region ap-southeast-2 cloudformation create-stack --stack-name pattern3-app --template-body file://baseline-application.yml --parameters ParameterKey=AmazonMachineImage,ParameterValue=ami-0f96495a064477ffb	ParameterKey=BaselineVpcStack,ParameterValue=pattern3-base 
@@ -80,9 +88,13 @@ This section will concentrate on building out the AMI Builder Pipeline. Upon com
 ![Section3 Pipeline Architecture Diagram ](images/section3/section3-pattern3-pipeline-architecture.png)
 
 
-If you are keen to complete the lab quickly, simply deploy the template for section3 which can be found [here](https://www.google.com "Section3 template").
+If you are keen to complete the lab quickly, you can simply deploy the template for section3 which can be found [here](https://github.com/skinnytimmy/ReInvent2020_labs/blob/Pattern3/Pattern3/templates/section3/pattern3-pipeline.yml "Section3 template").
 
-Alternatively, if you want to go through the process manually, then we will need to complete the following subtasks:
+When you have downloaded the template, simply enter the baseline VPC stack name (pattern3-base unless you have entered an alternative) and add in the AMI ID which you have used in section 2 (the AMI ID should be an Amazon Linux 2 image).
+
+
+
+Alternatively, if you want to go through the process manually to get an understanding of the Image Builder service. To do this you will need to complete the following subtasks:
 
 * Create an IAM role for use by the EC2 Image Builder.
 * Create an S3 bucket for logging purposes.
