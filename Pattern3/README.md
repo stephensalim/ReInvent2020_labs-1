@@ -64,7 +64,7 @@ If you have configured everything correctly, you should be able to view a webpag
 In addition, adding a simple 'details.php' to the end of your DNS address should list the packages currently available, together with the AMI which has been used to create the instance as follows:
 
 ![Section2 ALB Details.php Page ](images/section2/section2-pattern3-output-detailsphp.png)
-Format: ![Alt Text](url)
+
 
 When you have confirmed that the application deployment was successful, move to section 3 which will deploy your AMI Builder Pipeline.
 
