@@ -23,7 +23,7 @@ For ease of use, we have used Sydney as the default deployment region, so ensure
 The first section of the lab will build out a VPC, together with public and private subnets across two AZs. In addition, we will create an internet gateway and NAT gateway and the necessary routes from both public and private subnets. When we are completed our initial environment will look like this:
 
 ![Section1 Base Architecture](images/section1/section1-pattern3-base-architecture.png)
-Format: ![Alt Text](url)
+
 
 To deploy the first CloudFormation template, you can either deploy directly from the command line or via the console. 
 
@@ -154,6 +154,23 @@ Alternatively you can use any randomized string at the end of the standard bucke
 ---
 
 ### 3.3. Create a Component.
+
+Now we will need to create a component for use within the Image Builder pipeline. To do this, complete the following steps:
+
+**3.3.1.** Navigate to the EC2 Image Builder service from the console main page.
+**3.3.2.** From the EC2 Image Builder service, select 'Components' from the left hand menu and then select 'create component' as shown here:
+
+![Section3 Image Builder Create Component ](images/section3/section3-pattern3-create-component.png)
+
+
+
+name: ConfigureOS
+schemaVersion: 1.0
+phases:
+  - name: build
+    steps:
+      - name: UpdateOS
+        action: UpdateOS
 
 
 
