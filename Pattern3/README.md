@@ -234,9 +234,10 @@ When you have entered all of the configuration details, select 'Create Recipe' a
 * **Role:** Specify the instance role which you created in step **3.1**.
 * **Build Schedule:** Manual
 * **Infrastructure Settings/Instance Type:** Select an M4.large here if possible, although smaller instances can be used.
-* **VPC, subnet and security groups/Virtual Private Cloud:** Select the VPC that you created in section 1 of the lab (the output components will list the VPC details).
-* **VPC, subnet and security groups/Subnet ID:** Select the private subnet ID from section 1 of the lab.
-* **VPC, subnet and security groups/Security Group** Select the security group which you created in section 3.3.
+* **Infrastructure Settings/VPC, subnet and security groups/Virtual Private Cloud:** Select the VPC that you created in section 1 of the lab (the output components will list the VPC details).
+* **Infrastructure Settings/VPC, subnet and security groups/Subnet ID:** Select the private subnet ID from section 1 of the lab.
+* **Infrastructure Settings/VPC, subnet and security groups/Security Group** Select the security group which you created in section 3.3.
+* **Infrastructure Settings/Troubleshooting Settings/S3 location:** Enter the S3 bucket that you specified in section 3.2.
 
 
 
