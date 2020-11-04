@@ -153,28 +153,42 @@ Alternatively you can use any randomized string at the end of the standard bucke
 
 ---
 
-### 3.3. Create a Component.
+### 3.3. Create a Security Group.
+
+Our EC2 Image Build pipeline is going to need a security group created at a later stage in the configuration, so lets create one now so that we can include it later.
+
+Complete the following steps:
+
+**3.3.1.** Navigate to VPC 
+
+### 3.4. Create a Component.
 
 Now we will need to create a component for use within the Image Builder pipeline. To do this, complete the following steps:
 
-**3.3.1.** Navigate to the EC2 Image Builder service from the console main page.
+**3.4.1.** Navigate to the EC2 Image Builder service from the console main page.
 
 
-**3.3.2.** From the EC2 Image Builder service, select 'Components' from the left hand menu and then select 'create component' as shown here:
+**3.4.2.** From the EC2 Image Builder service, select 'Components' from the left hand menu and then select 'create component' as shown here:
 
 
 
 ![Section3 Image Builder Create Component ](images/section3/section3-pattern3-create-component.png)
 
-**3.3.3.** Add the following values to create a component, leaving the remainder as default:
+**3.4.3.** Add the following values to create a component, leaving the remainder as default:
 
 * **Version:** 1.0.0
+* **Platform** Linux
 * **Compatible OS versions:** Amazon Linux 2
 * **Component Name:** pattern3-pipeline-ConfigureOSComponent
 * **Description:** Component to update the OS with latest package versions.
 
 
-When you have completed this, enter the following text in the definition document. Note that the indentation is meaningful, so try and copy the below exactly.
+When you have completed this, enter the following text in the definition document with 'define document content' selected. 
+
+
+Note that the indentation is meaningful, so try and copy the below exactly.
+
+
 
 ```
 name: ConfigureOS
@@ -187,41 +201,62 @@ phases:
 ```
 
 
-done
-
-4. Create a standard security group which is empty.
-
-- no imbound role, just leave as default.
-
-4. Create recipe.
-
-In image builder, create a recipe.
-
-Call it :
-
-pattern3-pipeline-ImageRecipe
-manually include the AmazonLInux 2 EC2 template here: ami-0f96495a064477ffb
-Or manually note one from the EC2 console.
+When you have completed these inputs, select 'create component' to complete the component setup.
 
 
-Call out an SSM automation command called UpdateOS.
+## 3.5. Create An Image Builder Recipe.
+
+In image builder, create a recipe. To do this, complete the following steps:
 
 
-5. Build pipeline
+**3.5.1.** Select Recipes from the left hand menu and then select 'create recipe'.
+**3.5.2.** Enter the following as configuration details:
 
-In the console, recipe, actions, create pipeline from this recipe.
+* Name: pattern3-pipeline-ConfigureOSRecipe
+* Version: 1.0.0
+* Description: Pattern3 Configure OS Recipe
+* Select 'Enter custom AMI ID' and enter: the AMI ID which you are using for the lab.
+* Under 'Build components' select 'Browse build components' and then filter by 'Created by me' to include the component which you created earlier.
 
-Give it a name and specify our role name from step (1).
+When you have entered all of the configuration details, select 'Create Recipe' at the bottom of the screen.
 
-Use m5.large. The type of instance will define how long it will take to bootstrap your instance. If you use an m5 large it will take 20-30 miunutes, but if you want to save costs, please use a smaller instance and wait a bit longer!
+## 3.6. Create An Image Builder Pipeline Using the Recipe from [3.5.]
 
-You will need to specify the VPC details from section 1.
+**3.6.1** Remain in the Image Builder Recipe screen and use the tick box to select the recipe which you just created.
+**3.6.2** From the 'Actions' menu, select 'Create pipeline from this recipe' as shown here:
 
-Click on actions->run pipeline.
+![Section3.6.2 Image Builder Pipeline Creation ](images/section3/section3-pattern3-pipeline-creation-page.png)
 
-Now the pipeline is calling the SSM automation document and executing the EC2 image build.
+**3.6.3** Enter the following information to configure the pipeline:
 
-Go and check in System Manager/Automation document and 
+* **Name:** pattern3-pipeline
+* **Description:** Pattern 3 pipeline to update OS.
+* **Role:** Specify the instance role which you created in step **3.1**.
+* **Build Schedule:** Manual
+* **Infrastructure Settings/Instance Type:** Select an M4.large here if possible, although smaller instances can be used.
+* **VPC, subnet and security groups/Virtual Private Cloud:** Select the VPC that you created in section 1 of the lab (the output components will list the VPC details).
+* **VPC, subnet and security groups/Subnet ID:** Select the private subnet ID from section 1 of the lab.
+* **VPC, subnet and security groups/Security Group** Select the security group which you created in section 3.3.
+
+
+
+
+Note for the instance types listed, an M4.large will take 20-30 minutes to build. If you want to save costs, please use a smaller instance but be prepared to wait for a bit longer for completion.
+
+
+When you have completed the above configuration, select 'Next' at the bottom of the screen to go to the next configuation page.
+
+**3.6.4** There is nothing to configure for additional settings, so click 'Review'.
+
+
+
+## 3.7. Run Your Pipeline.
+
+Now we can test the pipeline to ensure that it is working correctly. To do this simply select 'Run Pipeline' from the 'Actions' menu with the pipeline selected as shown here:
+
+![Section3.7 Running the image builder pipeline ](images/section3/section3-pattern3-pipeline-creation-page.png)
+
+
 
 
 Build the systems manager document to orchestrate the execution of the image build and the deployment of our image into our cluster.
