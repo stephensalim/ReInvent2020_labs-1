@@ -73,7 +73,7 @@ To deploy the second CloudFormation template, you can either deploy directly fro
 
 To deploy the second CloudFormation template, you can either deploy directly from the command line or via the console. 
 
-You can get the template [here](https://github.com/skinnytimmy/ReInvent2020_labs/blob/Pattern3/Pattern3/templates/section3/pattern3-app.yml "Section2 template").
+You can get the template [here](https://github.com/skinnytimmy/ReInvent2020_labs/blob/Pattern3/Pattern3/templates/section2/pattern3-app.yml "Section2 template").
 
 ### 2.2. Command-line Template Installation
 
@@ -89,7 +89,7 @@ Note that for the AmazonMachineImage, please use an AMI ID which represents an A
 
 ### 2.3. (Optional Step ) AWS Console Template Installation
 
-If you decide to deploy the stack from the console, ensure that you provide the correct stack name from section (1) Note that we have used **pattern3-base** for the example as a default. In addition, you will need to provide the AMI-ID of an Amazon Linux 2 image, which you can find from the EC2 console. At the time of writing, the appropriate ID for an Amazon Linux 2 image in Sydney is (ami-0f96495a064477ffb).
+If you decide to deploy the stack from the console, ensure that you provide the correct stack name from section (1) Note that we have used **pattern3-base** for the example as a default. In addition, you will need to provide the AMI-ID of an Amazon Linux 2 image, which you can find from the EC2 console. At the time of writing, the appropriate ID for an Amazon Linux 2 image in Sydney is **(ami-0f96495a064477ffb)**.
 
 Don't forget to click the tickbox at the bottom of the screen to acknowledge that CloudFormation will create resources.
 
