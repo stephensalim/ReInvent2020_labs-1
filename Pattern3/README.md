@@ -151,21 +151,11 @@ aws s3 mb s3://$bucket --region ap-southeast-2
 
 Alternatively you can use any randomized string at the end of the standard bucket name and create a bucket manually.
 
+---
+
+### 3.3. Create a Component.
 
 
-
-EC2 
-- arn:aws:iam::aws:policy/EC2InstanceProfileForImageBuilder
-- arn:aws:iam::aws:policy/AmazonS3FullAccess
-- S3 full access is provided and needs to be locked down.
-
-Call it pattern3-recipe-instance-role.
-
-2. Create S3 bucket:
-
-teratim-pattern3-logging-bucket
-
-3. Create component.
 
 done
 
