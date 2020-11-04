@@ -168,10 +168,10 @@ Now we will need to create a component for use within the Image Builder pipeline
 
 **3.3.3.** Add the following values to create a component, leaving the remainder as default:
 
-* Version 1.0.0
-* Compatible OS versions: Amazon Linux 2
-* Component Name: pattern3-pipeline-ConfigureOSComponent
-* Description: Component to update the OS with latest package versions.
+* **Version:** 1.0.0
+* **Compatible OS versions:** Amazon Linux 2
+* **Component Name:** pattern3-pipeline-ConfigureOSComponent
+* **Description:** Component to update the OS with latest package versions.
 
 
 When you have completed this, enter the following text in the definition document. Note that the indentation is meaningful, so try and copy the below exactly.
