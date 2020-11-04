@@ -158,12 +158,25 @@ Alternatively you can use any randomized string at the end of the standard bucke
 Now we will need to create a component for use within the Image Builder pipeline. To do this, complete the following steps:
 
 **3.3.1.** Navigate to the EC2 Image Builder service from the console main page.
+
+
 **3.3.2.** From the EC2 Image Builder service, select 'Components' from the left hand menu and then select 'create component' as shown here:
+
+
 
 ![Section3 Image Builder Create Component ](images/section3/section3-pattern3-create-component.png)
 
+**3.3.3.** Add the following values to create a component, leaving the remainder as default:
+
+* Version 1.0.0
+* Compatible OS versions: Amazon Linux 2
+* Component Name: pattern3-pipeline-ConfigureOSComponent
+* Description: Component to update the OS with latest package versions.
 
 
+When you have completed this, enter the following text in the definition document. Note that the indentation is meaningful, so try and copy the below exactly.
+
+```
 name: ConfigureOS
 schemaVersion: 1.0
 phases:
@@ -171,7 +184,7 @@ phases:
     steps:
       - name: UpdateOS
         action: UpdateOS
-
+```
 
 
 done
