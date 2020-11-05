@@ -346,7 +346,8 @@ To execute the template from the command-line, run the following:
 aws cloudformation create-stack 
     --stack-name pattern3-automate 
     --template-body file://pattern3-automate.yml 
-    --parameters ParameterKey=ImageBuilderPipelineStack,ParameterValue=pattern3-pipeline            ParameterKey=ApplicationStack,ParameterValue=pattern3-app
+    --parameters ParameterKey=ImageBuilderPipelineStack,ParameterValue=pattern3-pipeline      
+                 ParameterKey=ApplicationStack,ParameterValue=pattern3-app
 
 ```
 
