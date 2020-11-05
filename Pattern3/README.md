@@ -361,7 +361,11 @@ Once the template is finished execution, note the document name from the Cloudfo
 
 We have provided a simple script for you to continuously query the load balancer http address during the document execution. This is a really simple way to show that even through the underlying autoscale cluster configuration is changing based on the new AMI which we create, there is a continuous availability throughout the migration. Firstly, download the monitor script [here](https://github.com/skinnytimmy/ReInvent2020_labs/blob/Pattern3/Pattern3/scripts/watchscript.sh). 
 
-Now simply execute the script, passing in the application load balancer http address which is in the output of the application CloudFormation stack in section 2.
+Now simply execute the script, passing in the application load balancer DNS address which is in the output of the application CloudFormation stack in section **2.3** as follows:
+
+./watchscript.sh 
+
+
 ### 4.5. Start the Automation Document.
 
 To Execute the SSM automation document, you can run the following command:
@@ -401,8 +405,26 @@ aws ssm describe-automation-executions --filter "Key=ExecutionId,Values=<enter_e
 <summary>[ Click here for Manual Configuration steps ]</summary>
 <p>
 
+We will now go through a manual deployment of the Systems Manager Automation Document through the console which will demonstrate how to interactively build an automation document which we can run to execute the **EC2 builder pipeline** and update our AMI configuration in our running Autoscale cluster via Cloudformation.
 
-### 4.1. Get The Template.
+Follow the following steps to perform an interactive installation:
+
+### 4.1. Access Systems Manager in the Console.
+
+Firstly access Systems Manager from the AWS Console. When you get to the front page of the service, use the left hand panel and go down to the bottom of the menu to select **'Documents'** from the **'Shared Resources'** as follows:
+
+[Accessing Automation Documents in Systems Manager](https://github.com/skinnytimmy/ReInvent2020_labs/blob/Pattern3/Pattern3/images/section4/section4-pattern3-systemsmanager-document.png).
+
+### 4.2. Configure the Automation Document.
+
+From the main page, select the **'Create Automation'** button to build an automation document.
+
+Enter the name of the automation document and select the **'Editor'** option to enter a the document directly into the console. 
+
+### 4.3. Enter Configuration Details Into The Editor.
+
+We now need to add the configuration files into the editor. We have provided comments below on the different sections to explain to you what the configuration statements are doing. As this is difficult to copy directly into the editor window with appropriate indentation, we have provided a full template copy [here](https://github.com/skinnytimmy/ReInvent2020_labs/blob/Pattern3/Pattern3/scripts/section4_ssm_automation_document.yml). Make sure you copy it correctly into the Document editor and select **'Create Automation'**
+
 
 Firstly we will enter the following parameters to the document. These will specify:
 
@@ -423,6 +445,7 @@ parameters:
 ```
 
 Now we take the Image Builder Pipeline ARN input and build the new Image.
+
 ```
 
 mainSteps:
@@ -503,11 +526,10 @@ mainSteps:
 
 ```
 
-Once we start the 
+
 
 
 </p></details>
 
----------------------END OF DOCUMENT------------------------------------------
 
 
