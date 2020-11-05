@@ -363,7 +363,11 @@ We have provided a simple script for you to continuously query the load balancer
 
 Now simply execute the script, passing in the application load balancer DNS address which is in the output of the application CloudFormation stack in section **2.3** as follows:
 
-./watchscript.sh 
+```
+./watchscript.sh http://<enter DNS address for the Application Load Balancer>
+```
+
+This will run a continous poll of the ALB throughout the next few steps to demonstrate that there is no interruption to traffic. For ease of use, you might want to run this in a separate dedicated terminal as it will continue to poll the ALB in a loop.
 
 
 ### 4.5. Start the Automation Document.
