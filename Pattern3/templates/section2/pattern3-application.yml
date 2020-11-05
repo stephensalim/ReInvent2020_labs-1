@@ -9,8 +9,7 @@ Parameters:
     Default: "2"
   AmazonMachineImage:
     Type: String
-    # Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-    # Default: "testami"
+
 Resources:
 #----------------------------------------------------------------------------------------
 # Build load balancer.
@@ -278,7 +277,7 @@ Resources:
 
 Outputs:
   OutputPattern3ALBDNSName:
-    Description: The DNSName of the backup load balancer
+    Description: The DNSName of the application load balancer
     Value: !GetAtt Pattern3ALB.DNSName
   OutputPattern3ALB:
     Description: Application Load Balancer

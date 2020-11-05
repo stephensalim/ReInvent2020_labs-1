@@ -359,6 +359,9 @@ Once the template is finished execution, note the document name from the Cloudfo
 
 ### 4.4. Start the Monitor Script.
 
+We have provided a simple script for you to continuously query the load balancer http address during the document execution. This is a really simple way to show that even through the underlying autoscale cluster configuration is changing based on the new AMI which we create, there is a continuous availability throughout the migration. Firstly, download the monitor script [here](https://github.com/skinnytimmy/ReInvent2020_labs/blob/Pattern3/Pattern3/scripts/watchscript.sh). 
+
+Now simply execute the script, passing in the application load balancer http address which is in the output of the application CloudFormation stack in section 2.
 ### 4.5. Start the Automation Document.
 
 To Execute the SSM automation document, you can run the following command:
@@ -376,7 +379,7 @@ Note the following:
 * The value of **<enter_application_stack_name>** is the name that you provided to the application stack in Section 2 (default is pattern3-app).
 * The value of **<enter_image_builder_pipeline_arn>** is the ARN of the Image Builder Pipeline. You can get this from the output to the pipeline stack from Section 3.
 
-When you have successfully executed the command you will be provided with an execution ID.
+When you have successfully executed the command you will be provided with an AutomationExecutionID.
 
 To check the status of the currently running automation executions, you can use the following command:
 
@@ -384,7 +387,13 @@ To check the status of the currently running automation executions, you can use 
 aws ssm describe-automation-executions 
 ```
 
-Note that you can pass a filter to the command with the executionId which you were provided from the automation execution.
+Note that you can pass a filter to the command with the AutomationExecutionID which you were provided from the automation execution as follows:
+
+```
+aws ssm describe-automation-executions --filter "Key=ExecutionId,Values=<enter_execution_id>"
+
+```
+
 
 </p></details>
 
@@ -394,12 +403,6 @@ Note that you can pass a filter to the command with the executionId which you we
 
 
 ### 4.1. Get The Template.
-
-
-
-
-
-
 
 Firstly we will enter the following parameters to the document. These will specify:
 
