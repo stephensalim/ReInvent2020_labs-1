@@ -372,9 +372,9 @@ aws ssm start-automation-execution \
 
 Note the following:
 
-* The value of <enter_document_name> is provided as output to the CloudFormation template which you noted in section **4.3**.
-* The value of <enter_application_stack_name> is the name that you provided to the application stack in Section 2 (default is pattern3-app).
-* The value of <enter_image_builder_pipeline_arn> is the ARN of the Image Builder Pipeline. You can get this from the output to the pipeline stack from Section 3.
+* The value of **<enter_document_name>** is provided as output to the CloudFormation template which you noted in section **4.3**.
+* The value of **<enter_application_stack_name>** is the name that you provided to the application stack in Section 2 (default is pattern3-app).
+* The value of **<enter_image_builder_pipeline_arn>** is the ARN of the Image Builder Pipeline. You can get this from the output to the pipeline stack from Section 3.
 
 When you have successfully executed the command you will be provided with an execution ID.
 
