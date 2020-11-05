@@ -351,21 +351,46 @@ aws cloudformation create-stack
 
 ```
 
+### 4.3. Record The CloudFormation Output.
 
 
+Once the template is finished execution, note the document name from the Cloudformation output as this will be required in later steps.
+
+
+### 4.4. Start the Monitor Script.
+
+### 4.5. Start the Automation Document.
+
+To Execute the SSM automation document, you can run the following command:
+
+```
+aws ssm start-automation-execution \
+    --document-name "<enter_document_name>" \
+    --parameters "ApplicationStack=<enter_application_stack_name>,imageBuilderPipeline=<enter_image_builder_pipeline_arn>"
+
+```
+
+Note the following:
+
+* The value of <enter_document_name> is provided as output to the CloudFormation template which you noted in section **4.3**.
+* The value of <enter_application_stack_name> is the name that you provided to the application stack in Section 2 (default is pattern3-app).
+* The value of <enter_image_builder_pipeline_arn> is the ARN of the Image Builder Pipeline. You can get this from the output to the pipeline stack from Section 3.
+
+When you have successfully executed the command you will be provided with an execution ID.
+
+To check the status of the currently running automation executions, you can use the following command:
+
+```
+aws ssm describe-automation-executions 
+```
+
+Note that you can pass a filter to the command with the executionId which you were provided from the automation execution.
 
 </p></details>
 
 <details>
 <summary>[ Click here for Manual Configuration steps ]</summary>
 <p>
-Put your things here
-
-
-
-
-
-
 
 
 ### 4.1. Get The Template.
@@ -376,97 +401,107 @@ Put your things here
 
 
 
-We are going
+Firstly we will enter the following parameters to the document. These will specify:
+
+* The ARN of the Image Builder Pipeline.
+* The name of the application stack that your created earlier (default: **pattern-app**)
 
 ```
-        description: CreateImage
-        schemaVersion: '0.3'
-        assumeRole: "{{ AutomationAssumeRole }}"
-        parameters:
-          ImageBuilderPipeline:
-            default: 
-              Fn::ImportValue:
-                !Sub "${ImageBuilderPipelineStack}-ImageBuilderPipeline"
-            description: (Required) Corresponding EC2 Image Builder Pipeline to execute.
-            type: String
-          ApplicationStack:
-            default: !Ref ApplicationStack
-            description: (Required) Corresponding Application Stack to Deploy the Image to.
-            type: String
-          AutomationAssumeRole:
-            default: "" 
-            description: "(Optional) The ARN of the role that allows Automation to perform the actions on your behalf."
-            type: String
-        mainSteps:
-          - name: ExecuteImageCreation
-            action: aws:executeAwsApi
-            maxAttempts: 10
-            timeoutSeconds: 3600
-            onFailure: Abort
-            inputs:
-              Service: imagebuilder
-              Api: StartImagePipelineExecution
-              imagePipelineArn: '{{ ImageBuilderPipeline }}'
-            outputs:
-            - Name: imageBuildVersionArn
-              Selector: $.imageBuildVersionArn
-              Type: String
-          - name: WaitImageComplete
-            action: aws:waitForAwsResourceProperty
-            maxAttempts: 10
-            timeoutSeconds: 3600
-            onFailure: Abort
-            inputs:
-              Service: imagebuilder
-              Api: GetImage
-              imageBuildVersionArn: '{{ ExecuteImageCreation.imageBuildVersionArn }}'
-              PropertySelector: image.state.status
-              DesiredValues: 
-                - AVAILABLE
-          - name: GetBuiltImage
-            action: aws:executeAwsApi
-            maxAttempts: 10
-            timeoutSeconds: 3600
-            onFailure: Abort
-            inputs:
-              Service: imagebuilder
-              Api: GetImage         
-              imageBuildVersionArn: '{{ ExecuteImageCreation.imageBuildVersionArn }}'
-            outputs:
-            - Name: image
-              Selector: $.image.outputResources.amis[0].image
-              Type: String
-          - name: UpdateCluster
-            action: aws:executeAwsApi
-            maxAttempts: 10
-            timeoutSeconds: 3600
-            onFailure: Abort
-            inputs:
-              Service: cloudformation
-              Api: UpdateStack
-              StackName: '{{ ApplicationStack }}'
-              UsePreviousTemplate: true
-              Parameters:
-                - ParameterKey: BaselineVpcStack
-                  UsePreviousValue: true
-                - ParameterKey: AmazonMachineImage
-                  ParameterValue: '{{ GetBuiltImage.image }}'
-              Capabilities:
-                - CAPABILITY_IAM
-          - name: WaitDeploymentComplete
-            action: aws:waitForAwsResourceProperty
-            maxAttempts: 10
-            timeoutSeconds: 3600
-            onFailure: Abort
-            inputs:
-              Service: cloudformation
-              Api: DescribeStacks
-              StackName: '{{ ApplicationStack }}'
-              PropertySelector: Stacks[0].StackStatus
-              DesiredValues: 
-                - UPDATE_COMPLETE
+description: CreateImage
+schemaVersion: '0.3'
+parameters:
+  ImageBuilderPipeline:
+    description: (Required) Corresponding EC2 Image Builder Pipeline to execute.
+    type: String
+  ApplicationStack:
+    description: (Required) Corresponding Application Stack to Deploy the Image to.
+    type: String
 
 ```
+
+Now we take the Image Builder Pipeline ARN input and build the new Image.
+```
+
+mainSteps:
+  - name: ExecuteImageCreation
+    action: aws:executeAwsApi
+    maxAttempts: 10
+    timeoutSeconds: 3600
+    onFailure: Abort
+    inputs:
+      Service: imagebuilder
+      Api: StartImagePipelineExecution
+      imagePipelineArn: '{{ ImageBuilderPipeline }}'
+    outputs:
+    - Name: imageBuildVersionArn
+      Selector: $.imageBuildVersionArn
+      Type: String
+```
+
+* Wait for the Image to completed building
+* Then update the Autoscaling cluster with the new Image details via the Cloudformation stack.
+* Wait for the Stack to complete updates and then return a completed signal.
+
+```
+  - name: WaitImageComplete
+    action: aws:waitForAwsResourceProperty
+    maxAttempts: 10
+    timeoutSeconds: 3600
+    onFailure: Abort
+    inputs:
+      Service: imagebuilder
+      Api: GetImage
+      imageBuildVersionArn: '{{ ExecuteImageCreation.imageBuildVersionArn }}'
+      PropertySelector: image.state.status
+      DesiredValues: 
+        - AVAILABLE
+  - name: GetBuiltImage
+    action: aws:executeAwsApi
+    maxAttempts: 10
+    timeoutSeconds: 3600
+    onFailure: Abort
+    inputs:
+      Service: imagebuilder
+      Api: GetImage         
+      imageBuildVersionArn: '{{ ExecuteImageCreation.imageBuildVersionArn }}'
+    outputs:
+    - Name: image
+      Selector: $.image.outputResources.amis[0].image
+      Type: String
+  - name: UpdateCluster
+    action: aws:executeAwsApi
+    maxAttempts: 10
+    timeoutSeconds: 3600
+    onFailure: Abort
+    inputs:
+      Service: cloudformation
+      Api: UpdateStack
+      StackName: '{{ ApplicationStack }}'
+      UsePreviousTemplate: true
+      Parameters:
+        - ParameterKey: BaselineVpcStack
+          UsePreviousValue: true
+        - ParameterKey: AmazonMachineImage
+          ParameterValue: '{{ GetBuiltImage.image }}'
+      Capabilities:
+        - CAPABILITY_IAM
+  - name: WaitDeploymentComplete
+    action: aws:waitForAwsResourceProperty
+    maxAttempts: 10
+    timeoutSeconds: 3600
+    onFailure: Abort
+    inputs:
+      Service: cloudformation
+      Api: DescribeStacks
+      StackName: '{{ ApplicationStack }}'
+      PropertySelector: Stacks[0].StackStatus
+      DesiredValues: 
+        - UPDATE_COMPLETE
+
+```
+
+Once we start the 
+
 
 </p></details>
 

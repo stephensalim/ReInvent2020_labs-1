@@ -3,17 +3,18 @@ Parameters:
     Type: String
   ApplicationStack:
     Type: String
-
+Outputs:
+  Pattern3CreateImageOutput:
+    Description: Image Creation SSM Document 
+    Value: !Ref Pattern3CreateImage
 Resources:
   Pattern3CreateImage: 
     Type: "AWS::SSM::Document"
     Properties:
       DocumentType: Automation
-      # Name: "CreateAmazonImage"
       Content: 
         description: CreateImage
         schemaVersion: '0.3'
-        assumeRole: "{{ AutomationAssumeRole }}"
         parameters:
           ImageBuilderPipeline:
             default: 
@@ -24,10 +25,6 @@ Resources:
           ApplicationStack:
             default: !Ref ApplicationStack
             description: (Required) Corresponding Application Stack to Deploy the Image to.
-            type: String
-          AutomationAssumeRole:
-            default: "" 
-            description: "(Optional) The ARN of the role that allows Automation to perform the actions on your behalf."
             type: String
         mainSteps:
           - name: ExecuteImageCreation

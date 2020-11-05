@@ -8,13 +8,6 @@ Parameters:
     Type: String
     Default: "1.0.0"
 
-Outputs:
-  Pattern3ImagePipeline:
-    Description: Image Builder Pipeline
-    Value: !Ref Pattern3ImagePipeline
-    Export:
-      Name: !Sub "${AWS::StackName}-ImageBuilderPipeline"
-
 Resources:
 
   #############
@@ -139,3 +132,10 @@ Resources:
       Tags:
         Name: !Join [ "-", [ !Ref AWS::StackName, "Pattern3ImagePipeline"]]
         ResourceType: "ReInvent2020-SecurityTheWellArchitectedWay-Pattern3" 
+
+Outputs:
+  Pattern3ImagePipeline:
+    Description: Image Builder Pipeline
+    Value: !Ref Pattern3ImagePipeline
+    Export:
+      Name: !Sub "${AWS::StackName}-ImageBuilderPipeline"
