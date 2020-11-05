@@ -405,6 +405,10 @@ When the automation execution is completed, use your web browser to access your 
 
 ![Section4.6 Check Updated AMI ID from ALB DNS address](images/section4/section4-pattern3-checkALBDNSname.png)
 
+This concludes our lab. 
+
+----------
+END OF LAB
 
 
 </p></details>
