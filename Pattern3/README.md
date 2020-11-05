@@ -318,7 +318,7 @@ Build the Systems Manager document to orchestrate the execution of the image bui
 Now that the AMI Builder Pipeline is built, we will work to build the final automation stage with Systems Manager. When we are completed our architecture will reflect the following diagram:
 
 
-![Section4 Automation Architecture Diagram ](images/section4/section3-pattern4-automate-architecture.png)
+![Section4 Automation Architecture Diagram ](images/section4/section4-pattern3-automate-architecture.png)
 
 
 The build automation will achieve the following:
