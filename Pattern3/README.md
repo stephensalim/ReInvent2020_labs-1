@@ -3,7 +3,7 @@
 
 ## Introduction 
 
-Patching is a vitual component to any security strategy in terms of ensuring that your compute environments are operating with the latest code revisions available. This ensures that all security updates are applied which reduces the potential attack surface of your workload. In terms of compliance, almost all frameworks will require evidence of a patching strategy of some sort, so ensuring that you have an automated solution in place will reduce your operational overhead, patch your environment to the latest operating system code and also provide the appropriate logging which could assist you during a future compliance audit.
+Patching is a vital component to any security strategy in terms of ensuring that your compute environments are operating with the latest code revisions available. This ensures that all security updates are applied which reduces the potential attack surface of your workload. In terms of compliance, almost all frameworks will require evidence of a patching strategy of some sort, so ensuring that you have an automated solution in place will reduce your operational overhead, patch your environment to the latest operating system code and also provide the appropriate logging which could assist you during a future compliance audit.
 
 
 There are a number of different patching methods available using native AWS services, but we have decided to utilize a combination of ![EC2 Image Builder](https://aws.amazon.com/image-builder/) and ![Systems Manager](https://aws.amazon.com/systems-manager/) for this lab. We will take you through the lab in stages with examples using both manual deployments and ![CloudFormation](https://aws.amazon.com/cloudformation/) templates to assist you.
@@ -16,7 +16,7 @@ Our lab is split into a number of individual sections as follows:
 1. Deploy the Base Infrastructure.
 2. Deploy the Application Infrastructure.
 3. Deploy the AMI Builder Pipeline.
-4. Deploy the Build Automation.
+4. Deploy the Build Automation with SSM.
 
 We have included CloudFormation templates for the first few steps to get your started, and also provide optional templates for the rest of the lab so you can choose between creating the pipeline and automation documents manually or simply running the template to see the end result.
 
@@ -209,7 +209,10 @@ Now we will need to create a component for use within the Image Builder pipeline
 
 ![Section3 Image Builder Create Component ](images/section3/section3-pattern3-create-component.png)
 
-**3.4.3.** Add the following values to create a component, leaving the remainder as default:
+### 3.4.3. Add Component Configuration Details
+
+
+Add the following values to create a component, leaving unspecified settings as default:
 
 * **Version:** 1.0.0
 * **Platform** Linux
@@ -257,12 +260,19 @@ When you have entered all of the configuration details, select 'Create Recipe' a
 
 ## 3.6. Create An Image Builder Pipeline Using the Recipe from [3.5.]
 
-**3.6.1** Remain in the Image Builder Recipe screen and use the tick box to select the recipe which you just created.
-**3.6.2** From the 'Actions' menu, select 'Create pipeline from this recipe' as shown here:
+### 3.6.1 Select the Recipe That You Just Created
+
+Remain in the Image Builder Recipe screen and use the tick box to select the recipe which you just created.
+
+### 3.6.2. Create the Pipeline from the Recipe
+
+From the 'Actions' menu, select 'Create pipeline from this recipe' as shown here:
 
 ![Section3.6.2 Image Builder Pipeline Creation ](images/section3/section3-pattern3-pipeline-creation-page.png)
 
-**3.6.3** Enter the following information to configure the pipeline:
+### 3.6.3. Configure Pipeline details:
+
+Enter the following information to configure the pipeline:
 
 * **Name:** pattern3-pipeline
 * **Description:** Pattern 3 pipeline to update OS.
@@ -282,23 +292,158 @@ Note for the instance types listed, an M4.large will take 20-30 minutes to build
 
 When you have completed the above configuration, select 'Next' at the bottom of the screen to go to the next configuation page.
 
-**3.6.4** There is nothing to configure for additional settings, so click 'Review'.
+### 3.6.4. Additional Settings 
+
+
+There is nothing to configure for additional settings, so click 'Review'.
 
 
 
-## 3.7. Run Your Pipeline.
+### 3.7. Run Your Pipeline.
+
 
 Now we can test the pipeline to ensure that it is working correctly. To do this simply select 'Run Pipeline' from the 'Actions' menu with the pipeline selected as shown here:
 
 ![Section3.7 Running the image builder pipeline ](images/section3/section3-pattern3-pipeline-creation-page.png)
 
 
+----COMPLETE THIS SECTION-----
+
+Build the Systems Manager document to orchestrate the execution of the image build and the deployment of our image into our cluster.
 
 
-Build the systems manager document to orchestrate the execution of the image build and the deployment of our image into our cluster.
+## 4.0. Deploy The Build Automation with SSM.
 
 
-------------------------------------------
+Now that the AMI Builder Pipeline is built, we will work to build the final automation stage with Systems Manager. When we are completed our architecture will reflect the following diagram:
+
+
+![Section4 Automation Architecture Diagram ](images/section4/section3-pattern4-automate-architecture.png)
+
+
+The build automation will achieve the following:
+
+* Automate the execution of the EC2 Image Builder Pipeline.
+* Update the CloudFormation stack with the new patched Amazon Machine Image (which we created using the EC2 Image Builder Pipeline).
+* The AMI update will in turn trigger the CloudFormation ![AutoScalingReplacingUpdate](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-updatepolicy.html) policy to perform a simple equivalent of a blue/green deployment of the new Autoscaling group.
+
+
+For this section, you can either deploy the CloudFormation template to install the automation components, or add them interactively through the console.
+
+<details>
+<summary>[ Click here for detailed steps ]</summary>
+<p>
+Put your things here
+</p></details>
+
+
+If you are keen to complete the lab quickly, you can simply deploy the template for Section 4 which can be found [here](https://github.com/skinnytimmy/ReInvent2020_labs/blob/Pattern3/Pattern3/templates/section4/pattern3-automate.yml "Section4 template").
+
+
+
+
+### 4.1. Get The Template.
+
+
+
+
+
+
+If you are keen to complete the lab quickly, you can simply deploy the template for section3 which can be found [here](https://github.com/skinnytimmy/ReInvent2020_labs/blob/Pattern3/Pattern3/templates/section3/pattern3-pipeline.yml "Section3 template").
+
+We are going
+
+```
+        description: CreateImage
+        schemaVersion: '0.3'
+        assumeRole: "{{ AutomationAssumeRole }}"
+        parameters:
+          ImageBuilderPipeline:
+            default: 
+              Fn::ImportValue:
+                !Sub "${ImageBuilderPipelineStack}-ImageBuilderPipeline"
+            description: (Required) Corresponding EC2 Image Builder Pipeline to execute.
+            type: String
+          ApplicationStack:
+            default: !Ref ApplicationStack
+            description: (Required) Corresponding Application Stack to Deploy the Image to.
+            type: String
+          AutomationAssumeRole:
+            default: "" 
+            description: "(Optional) The ARN of the role that allows Automation to perform the actions on your behalf."
+            type: String
+        mainSteps:
+          - name: ExecuteImageCreation
+            action: aws:executeAwsApi
+            maxAttempts: 10
+            timeoutSeconds: 3600
+            onFailure: Abort
+            inputs:
+              Service: imagebuilder
+              Api: StartImagePipelineExecution
+              imagePipelineArn: '{{ ImageBuilderPipeline }}'
+            outputs:
+            - Name: imageBuildVersionArn
+              Selector: $.imageBuildVersionArn
+              Type: String
+          - name: WaitImageComplete
+            action: aws:waitForAwsResourceProperty
+            maxAttempts: 10
+            timeoutSeconds: 3600
+            onFailure: Abort
+            inputs:
+              Service: imagebuilder
+              Api: GetImage
+              imageBuildVersionArn: '{{ ExecuteImageCreation.imageBuildVersionArn }}'
+              PropertySelector: image.state.status
+              DesiredValues: 
+                - AVAILABLE
+          - name: GetBuiltImage
+            action: aws:executeAwsApi
+            maxAttempts: 10
+            timeoutSeconds: 3600
+            onFailure: Abort
+            inputs:
+              Service: imagebuilder
+              Api: GetImage         
+              imageBuildVersionArn: '{{ ExecuteImageCreation.imageBuildVersionArn }}'
+            outputs:
+            - Name: image
+              Selector: $.image.outputResources.amis[0].image
+              Type: String
+          - name: UpdateCluster
+            action: aws:executeAwsApi
+            maxAttempts: 10
+            timeoutSeconds: 3600
+            onFailure: Abort
+            inputs:
+              Service: cloudformation
+              Api: UpdateStack
+              StackName: '{{ ApplicationStack }}'
+              UsePreviousTemplate: true
+              Parameters:
+                - ParameterKey: BaselineVpcStack
+                  UsePreviousValue: true
+                - ParameterKey: AmazonMachineImage
+                  ParameterValue: '{{ GetBuiltImage.image }}'
+              Capabilities:
+                - CAPABILITY_IAM
+          - name: WaitDeploymentComplete
+            action: aws:waitForAwsResourceProperty
+            maxAttempts: 10
+            timeoutSeconds: 3600
+            onFailure: Abort
+            inputs:
+              Service: cloudformation
+              Api: DescribeStacks
+              StackName: '{{ ApplicationStack }}'
+              PropertySelector: Stacks[0].StackStatus
+              DesiredValues: 
+                - UPDATE_COMPLETE
+
+```
+
+---------------------END OF DOCUMENT------------------------------------------
 
 Introduction
 
