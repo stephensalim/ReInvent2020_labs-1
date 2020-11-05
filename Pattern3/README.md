@@ -398,6 +398,14 @@ aws ssm describe-automation-executions --filter "Key=ExecutionId,Values=<enter_e
 
 ```
 
+### 4.6. Confirm that the AMI has been Updated Via the Load Balancer DNS Name.
+
+When the automation execution is completed, use your web browser to access your application load balancer DNS name, together with the 'details.php' script added to the end of the address. You will now find that the AMI-ID has been updated with a new one, indicating that your original autoscaling group has been replaced with an updated group which is configured to use the patched AMI. as follows:
+
+
+![Section4.6 Check Updated AMI ID from ALB DNS address](images/section4/section4-pattern3-checkALBDNSname.png)
+
+
 
 </p></details>
 
