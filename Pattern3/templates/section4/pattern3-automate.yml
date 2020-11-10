@@ -1,5 +1,5 @@
 Parameters:
-  ImageBuilderPipelineStack:
+  ImageBuilderPipelineARN:
     Type: String
   ApplicationStack:
     Type: String
@@ -16,10 +16,8 @@ Resources:
         description: CreateImage
         schemaVersion: '0.3'
         parameters:
-          ImageBuilderPipeline:
-            default: 
-              Fn::ImportValue:
-                !Sub "${ImageBuilderPipelineStack}-ImageBuilderPipeline"
+          ImageBuilderPipelineARN:
+            default: !Ref ImageBuilderPipelineARN
             description: (Required) Corresponding EC2 Image Builder Pipeline to execute.
             type: String
           ApplicationStack:
@@ -35,7 +33,7 @@ Resources:
             inputs:
               Service: imagebuilder
               Api: StartImagePipelineExecution
-              imagePipelineArn: '{{ ImageBuilderPipeline }}'
+              imagePipelineArn: '{{ ImageBuilderPipelineARN }}'
             outputs:
             - Name: imageBuildVersionArn
               Selector: $.imageBuildVersionArn
