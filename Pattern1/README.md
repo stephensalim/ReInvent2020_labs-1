@@ -29,8 +29,6 @@ aws cloudformation create-stack --stack-name pattern1-app \
 
 
 ```
-curl --header "Content-Type: application/json" \ 
-     --request POST \
-     --data '{"Text":"HelloWorld"}' \
-     http://localhost:8080/encrypt
+curl --header "Content-Type: application/json" --request POST --data '{"Name":"John","Text":"I love dumplings"}' http://localhost:8080/encrypt
+curl --header "Content-Type: application/json" --request GET --data '{"Name":"John","Key":"3ccfef82-f8d7-49f7-acca-8784c2bbd78c"}' http://localhost:8080/decrypt
 ```
