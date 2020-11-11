@@ -24,6 +24,12 @@ Outputs:
     Value: !Ref Pattern1PrivateSubnet2
     Export:
       Name: !Sub "${AWS::StackName}-PrivateSubnet2"
+  OutputPattern1AppContainerRepository:
+    Description: Applicaton ECR Repository
+    Value: !Ref Pattern1AppContainerRepository
+    Export:
+      Name: !Sub "${AWS::StackName}-Pattern1AppContainerRepository"
+
 
 Resources:
   #------------------------------------------------------------
@@ -247,3 +253,10 @@ Resources:
     Properties:
       SubnetId: !Ref Pattern1PrivateSubnet2
       RouteTableId: !Ref Pattern1PrivateRouteTable2
+
+  # ------------------
+  # ECR Repository
+  # ------------------
+
+  Pattern1AppContainerRepository: 
+    Type: AWS::ECR::Repository

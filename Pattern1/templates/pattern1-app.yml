@@ -1,12 +1,12 @@
 Parameters:
   BaselineVpcStack:
     Type: String
-  DBMasterUsername: 
-    Type: String
-    Default: masteradmin
-  DBMasterUserPassword: 
-    Type: String
-    NoEcho: True
+  # DBMasterUsername: 
+  #   Type: String
+  #   Default: masteradmin
+  # DBMasterUserPassword: 
+  #   Type: String
+  #   NoEcho: True
 
 Outputs:
   OutputPattern1ALB:
@@ -179,41 +179,23 @@ Resources:
       ContainerDefinitions:
       - Name: simple-app
         Essential: 'true'
-        Image: httpd:2.4
+        Image: 022787131977.dkr.ecr.ap-southeast-2.amazonaws.com/pattern1:latest
         LogConfiguration:
           LogDriver: awslogs
           Options:
             awslogs-group: !Ref 'Pattern1ECSCloudWatchLogsGroup'
             awslogs-region: !Ref 'AWS::Region'
             awslogs-stream-prefix: !Join ['', [!Ref 'AWS::StackName', -pattern1-app]]
-        MountPoints:
-        - ContainerPath: /usr/local/apache2/htdocs
-          SourceVolume: my-vol
+        Environment:
+          - Name: DBHOST
+            Value: !GetAtt Pattern1RDS.Endpoint.Address
+          - Name: KeyId
+            Value: !Ref Pattern1KMSKey
+          - NAME: DBSecret
+            Value: !Ref Pattern1RDSSecret
         PortMappings:
         - ContainerPort: 80
-      - Name: busybox
-        Cpu: 10
-        Command: ['/bin/sh -c "while true; do echo ''<html> <head> <title>Amazon ECS
-            Sample App</title> <style>body {margin-top: 40px; background-color: #333;}
-            </style> </head><body> <div style=color:white;text-align:center> <h1>Amazon
-            ECS Sample App</h1> <h2>Congratulations!</h2> <p>Your application is now
-            running on a container in Amazon ECS.</p>'' > top; /bin/date > date ;
-            echo ''</div></body></html>'' > bottom; cat top date bottom > /usr/local/apache2/htdocs/index.html
-            ; sleep 1; done"']
-        EntryPoint: [sh, -c]
-        Essential: false
-        Image: busybox
-        Memory: 200
-        LogConfiguration:
-          LogDriver: awslogs
-          Options:
-            awslogs-group: !Ref 'Pattern1ECSCloudWatchLogsGroup'
-            awslogs-region: !Ref 'AWS::Region'
-            awslogs-stream-prefix: !Join ['', [!Ref 'AWS::StackName', -pattern1-app]]
-        VolumesFrom:
-        - SourceContainer: simple-app
-      Volumes:
-      - Name: my-vol
+
 
   Pattern1ECSCloudWatchLogsGroup:
     Type: AWS::Logs::LogGroup
@@ -221,6 +203,12 @@ Resources:
       LogGroupName: !Ref AWS::StackName
       RetentionInDays: 365              
 
+  #----------------------------------------------------------------------------------------
+  # Build ECR Repo.
+  #----------------------------------------------------------------------------------------
+
+  Pattern1ECRRepository:
+    Type: AWS::ECR::Repository
 
   #----------------------------------------------------------------------------------------
   # Build ECS IAM Roles.
@@ -250,7 +238,9 @@ Resources:
             Principal:
               Service: ecs-tasks.amazonaws.com
             Action: 'sts:AssumeRole'
-
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AdministratorAccess'
+        
   Pattern1ECSTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -266,6 +256,41 @@ Resources:
 
   #----------------------------------------------------------------------------------------
   # Build RDS Instance.
+  #----------------------------------------------------------------------------------------
+
+  Pattern1RDS:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 5
+      DBInstanceClass: db.t2.small
+      Engine: MySQL
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref Pattern1RDSSecret, ':SecretString:username}}' ]]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref Pattern1RDSSecret, ':SecretString:password}}' ]]
+      DBSubnetGroupName: !Ref Pattern1RDSSubnetGroup
+      PubliclyAccessible: True
+
+  Pattern1RDSSubnetGroup: 
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties: 
+      DBSubnetGroupDescription: "Subnet Group"
+      SubnetIds: 
+        - Fn::ImportValue:
+            !Sub "${BaselineVpcStack}-PrivateSubnet1"
+        - Fn::ImportValue:
+            !Sub "${BaselineVpcStack}-PrivateSubnet2"
+
+  Pattern1RDSSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: 'This is the secret for my RDS instance'
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "masteradmin"}'
+        GenerateStringKey: 'password'
+        PasswordLength: 16
+        ExcludeCharacters: '"@/\'
+
+  #----------------------------------------------------------------------------------------
+  # Build Parameter KMS Key
   #----------------------------------------------------------------------------------------
 
   Pattern1KMSKey:
@@ -285,24 +310,3 @@ Resources:
                   - ":root"
             Action: "kms:*"
             Resource: "*"
-
-  Pattern1RDS:
-    Type: AWS::RDS::DBInstance
-    Properties:
-      AllocatedStorage: 5
-      DBInstanceClass: db.t2.small
-      Engine: MySQL
-      MasterUsername: !Ref 'DBMasterUsername'
-      MasterUserPassword: !Ref 'DBMasterUserPassword'
-      DBSubnetGroupName: !Ref Pattern1RDSSubnetGroup
-      PubliclyAccessible: True
-
-  Pattern1RDSSubnetGroup: 
-    Type: "AWS::RDS::DBSubnetGroup"
-    Properties: 
-      DBSubnetGroupDescription: "Subnet Group"
-      SubnetIds: 
-        - Fn::ImportValue:
-            !Sub "${BaselineVpcStack}-PublicSubnet1"
-        - Fn::ImportValue:
-            !Sub "${BaselineVpcStack}-PublicSubnet2"
