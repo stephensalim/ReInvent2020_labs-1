@@ -1,12 +1,9 @@
 Parameters:
   BaselineVpcStack:
     Type: String
-  # DBMasterUsername: 
-  #   Type: String
-  #   Default: masteradmin
-  # DBMasterUserPassword: 
-  #   Type: String
-  #   NoEcho: True
+  ECRImageURI:
+    Type: String
+
 
 Outputs:
   OutputPattern1ALB:
@@ -15,7 +12,7 @@ Outputs:
     Export:
       Name: !Sub "${AWS::StackName}-ALB"
   OutputPattern1KMSKey:
-    Description: KMS Key used by app to encrypt / decrypt data 
+    Description: KMS Key used by app to encrypt / decrypt data
     Value: !Ref Pattern1KMSKey
   OutputPattern1ELBSecurityGroup:
     Description: Elastic Load Balancer Security Group
@@ -37,13 +34,13 @@ Resources:
   Pattern1ALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      SecurityGroups: 
+      SecurityGroups:
         - !Ref Pattern1ELBSecurityGroup
-      Subnets: 
-        - 
+      Subnets:
+        -
           Fn::ImportValue:
             !Sub "${BaselineVpcStack}-PublicSubnet1"
-        - 
+        -
           Fn::ImportValue:
             !Sub "${BaselineVpcStack}-PublicSubnet2"
       Tags:
@@ -67,7 +64,7 @@ Resources:
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
           Value: 60
-      VpcId: 
+      VpcId:
         Fn::ImportValue:
           !Sub "${BaselineVpcStack}-VpcId"
       Port: 80
@@ -95,7 +92,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable HTTP from the Internet
-      VpcId: 
+      VpcId:
         Fn::ImportValue:
           !Sub "${BaselineVpcStack}-VpcId"
       SecurityGroupIngress:
@@ -107,7 +104,7 @@ Resources:
       - Key: Name
         Value: !Join [ "-", [ !Ref AWS::StackName, "ExternalELBSecurityGroup"]]
       - Key: ResourceType
-        Value: "ReInvent2020-SecurityTheWellArchitectedWay-Pattern1"    
+        Value: "ReInvent2020-SecurityTheWellArchitectedWay-Pattern1"
 
 #----------------------------------------------------------------------------------------
 # Build ECS Resources.
@@ -117,7 +114,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: !Join ['', [!Ref 'AWS::StackName', -Pattern1ContainerSecGroup]]
-      VpcId: 
+      VpcId:
         Fn::ImportValue:
           !Sub "${BaselineVpcStack}-VpcId"
       SecurityGroupIngress:
@@ -153,7 +150,7 @@ Resources:
       TaskDefinition: !Ref Pattern1TaskDefinition
       ServiceName: !Join ['', [!Ref 'AWS::StackName', -pattern1-app-api]]
       LaunchType: FARGATE
-      NetworkConfiguration: 
+      NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
           Subnets:
@@ -171,7 +168,7 @@ Resources:
       Family: !Join ['', [!Ref 'AWS::StackName', -pattern1-app]]
       TaskRoleArn: !Ref Pattern1ECSTaskRole
       ExecutionRoleArn: !Ref Pattern1ECSTaskExecutionRole
-      NetworkMode: awsvpc 
+      NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
       Cpu: 256
@@ -201,14 +198,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Ref AWS::StackName
-      RetentionInDays: 365              
-
-  #----------------------------------------------------------------------------------------
-  # Build ECR Repo.
-  #----------------------------------------------------------------------------------------
-
-  Pattern1ECRRepository:
-    Type: AWS::ECR::Repository
+      RetentionInDays: 365
 
   #----------------------------------------------------------------------------------------
   # Build ECS IAM Roles.
@@ -240,7 +230,7 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AdministratorAccess'
-        
+
   Pattern1ECSTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -269,11 +259,11 @@ Resources:
       DBSubnetGroupName: !Ref Pattern1RDSSubnetGroup
       PubliclyAccessible: True
 
-  Pattern1RDSSubnetGroup: 
+  Pattern1RDSSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"
-    Properties: 
+    Properties:
       DBSubnetGroupDescription: "Subnet Group"
-      SubnetIds: 
+      SubnetIds:
         - Fn::ImportValue:
             !Sub "${BaselineVpcStack}-PrivateSubnet1"
         - Fn::ImportValue:
