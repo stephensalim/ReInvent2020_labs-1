@@ -24,7 +24,11 @@ Outputs:
     Value: !GetAtt Pattern1ALB.DNSName
     Export:
       Name: !Sub "${AWS::StackName}-ApplicationEndpoint"
-
+  OutputPattern1ECSTaskRole:
+    Description: App Task Role ARN
+    Value: !GetAtt Pattern1ECSTaskRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ApplicationTaskRole"
 
 
 Resources:
@@ -230,6 +234,7 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AdministratorAccess'
+        ### This needs to be restricted 
 
   Pattern1ECSTaskExecutionRole:
     Type: AWS::IAM::Role
