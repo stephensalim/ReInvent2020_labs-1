@@ -19,7 +19,6 @@ Outputs:
       Name: !Sub "${AWS::StackName}-Pattern1CloudTrail"
 
 Resources:
-
   Pattern1CloudTrailS3Bucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -64,6 +63,7 @@ Resources:
       IsLogging: True
       IsMultiRegionTrail: False
       S3BucketName: !Ref Pattern1CloudTrailS3Bucket
+      KMSKeyId: !Ref Pattern1KMSCloudTrail
       Tags:
         - Key: Name
           Value: !Join [ "-", [ !Ref AWS::StackName, "Pattern1Trail"]]
@@ -84,10 +84,22 @@ Resources:
             Principal:
               Service: cloudtrail.amazonaws.com
             Action: 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/AdministratorAccess'
-        ### This needs to be restricted 
-
+      Path: /
+      Policies:
+        - PolicyName: AWSCloudTrailCreateLogStream
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'logs:CreateLogStream'
+                Resource: !GetAtt Pattern1CloudWatchLogGroup.Arn
+        - PolicyName: AWSCloudTrailPutLogEvents
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'logs:PutLogEvents'
+                Resource: !GetAtt Pattern1CloudWatchLogGroup.Arn
 
   Pattern1CloudWatchLogGroup: 
     Type: AWS::Logs::LogGroup
@@ -122,7 +134,6 @@ Resources:
       TreatMissingData: ignore
       AlarmActions:
         - !Ref Pattern1CloudWatchAlarmTopic
-        - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:opsitem:2#CATEGORY=Security
 
   Pattern1CloudWatchAlarmTopic:
     Type: 'AWS::SNS::Topic'
@@ -134,3 +145,76 @@ Resources:
       Endpoint: !Ref EmailAddress
       Protocol: email
       TopicArn: !Ref Pattern1CloudWatchAlarmTopic
+
+  #----------------------------------------------------------------------------------------
+  # Build Parameter KMS Key
+  #----------------------------------------------------------------------------------------
+
+  Pattern1KMSCloudTrail:
+    Type: "AWS::KMS::Key"
+    Properties:
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: key-pattern1-cloudtrail
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Join
+                - ""
+                - - "arn:aws:iam::"
+                  - !Ref "AWS::AccountId"
+                  - ":root"
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: Allow CloudTrail to encrypt logs
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: "kms:GenerateDataKey"
+            Resource: "*"
+            Condition:
+              StringLike:
+                kms:EncryptionContext:aws:cloudtrail:arn: !Sub "arn:aws:cloudtrail:*:${AWS::AccountId}:trail/*"
+          - Sid: Allow CloudTrail to describe key
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: "kms:DescribeKey"
+            Resource: "*"                        
+          - Sid: Allow principals in the account to decrypt log files
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action: 
+              - "kms:Decrypt"
+              - "kms:ReEncryptFrom"
+            Resource: "*"
+            Condition:
+              StringEquals:
+                  kms:CallerAccount: !Ref "AWS::AccountId"
+              StringLike:
+                  kms:EncryptionContext:aws:cloudtrail:arn: !Sub "arn:aws:cloudtrail:*:${AWS::AccountId}:trail/*"
+          - Sid: Allow alias creation during setup
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action: "kms:CreateAlias"
+            Resource: "*"
+            Condition:
+              StringEquals:
+                kms:CallerAccount: !Ref AWS::AccountId
+                kms:ViaService": !Sub ec2.${AWS::Region}.amazonaws.com"
+          - Sid: Enable cross account log decryption
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action: 
+              - kms:Decrypt
+              - kms:ReEncryptFrom
+            Resource: "*"
+            Condition:
+              StringEquals:
+                kms:CallerAccount: !Ref AWS::AccountId
+              StringLike:
+                kms:EncryptionContext:aws:cloudtrail:arn: !Sub "arn:aws:cloudtrail:*:${AWS::AccountId}:trail/*"

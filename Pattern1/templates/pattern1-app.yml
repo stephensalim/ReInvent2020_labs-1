@@ -232,8 +232,29 @@ Resources:
             Principal:
               Service: ecs-tasks.amazonaws.com
             Action: 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/AdministratorAccess'
+      Path: /
+      Policies:            
+        - PolicyName: KMSAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: !GetAtt Pattern1KMSKey.Arn
+        - PolicyName: SMAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'secretsmanager:GetSecretValue'
+                Resource: !Ref Pattern1RDSSecret                
+        - PolicyName: CloudWatchLogs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'logs:*'
+                Resource: !GetAtt Pattern1ECSCloudWatchLogsGroup.Arn        
         ### This needs to be restricted 
 
   Pattern1ECSTaskExecutionRole:
@@ -262,7 +283,6 @@ Resources:
       MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref Pattern1RDSSecret, ':SecretString:username}}' ]]
       MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref Pattern1RDSSecret, ':SecretString:password}}' ]]
       DBSubnetGroupName: !Ref Pattern1RDSSubnetGroup
-      PubliclyAccessible: True
 
   Pattern1RDSSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"

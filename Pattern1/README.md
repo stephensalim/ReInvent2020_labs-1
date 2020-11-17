@@ -21,6 +21,7 @@ Our lab is divided into several sections as follows:
 1.3. Deploy base application stack.
 1.4. Test application launched.
 2. Configure CloudTrail Logging & Alarm
+3. Testing Logging and Alarm.
 
 
 We have included CloudFormation templates for the first few steps to get your started, and also provide optional templates for the rest of the lab so you can choose between creating the monitoring resources via cloudformation or manually through the console.
@@ -112,7 +113,7 @@ To deploy from the command line, ensure that you have installed and configured A
     e.g:
 
     ```
-    aws cloudformation create-stack --stack-name pattern1-application \
+    aws cloudformation create-stack --stack-name pattern1-app \
                                     --template-body file://pattern1-app.yml \
                                     --parameters ParameterKey=BaselineVpcStack,ParameterValue=pattern1-base \
                                                 ParameterKey=ECRImageURI,ParameterValue=111111111111.dkr.ecr.ap-southeast-2.amazonaws.com/pattern1appcontainerrepository-cu9vft86ml5e:latest \
@@ -131,19 +132,28 @@ To deploy from the command line, ensure that you have installed and configured A
 
 ### 1.4. Test the Application launched.
 
-[ Explanations about the application behaviour ]
+In this part of the Lab, we will be testing the encrypt API of the sample application we just deployed.
+Our application will basically take a JSON payload with `Name` and `Text` key, and it will encrypt the value under text key with a designated KMS key. 
+Once the text is encrypted, it will store the encrypted text in the RDS database with the `Name` as the primary key.
+
+  ###### Note:
+  For simplicity In our sample application, we are not generating individual KMS key for each record generated. 
+  This is because the purpose of this lab is to showcase / explore the event response aspect once a failed cryptographic event has been triggered.
+  That being said, if you are doing this in real life, if your use case requires you can use separate KMS key for each record.
+
+Please replace the < Application Endpoint URL > with the **OutputPattern1ApplicationEndpoint** from previous step.
 
 ```
-ALBURL="http://patte-Patte-1D3Y1IXBO43P7-686158038.ap-southeast-2.elb.amazonaws.com"
+ALBURL="< Application Endpoint URL >"
 
 curl --header "Content-Type: application/json" --request POST --data '{"Name":"Stephen","Text":"I love Pizza"}' $ALBURL/encrypt
 ```
 
-Once you've executed this you should see an output as below.
-Take note of the **Key** value, we will need it to decypt later.
+Once you've executed this you should see an output like below.
+Take note of the encrypt key value under **Key**  from your output, we will need it to decrypt later.
 
 ```
-{"Message":"Data encrypted and stored, keep your key save","Key":"afad2b1f-48b5-4eac-a226-dd014f59497c"}
+{"Message":"Data encrypted and stored, keep your key save","Key":"<encrypt key (take note) >"}
 ```
 
 ##### Console:
@@ -168,24 +178,18 @@ Download the template [here]
 ##### Command Line:
 
 1. To deploy from the command line, ensure that you have installed and configured AWS CLI with the appropriate credentials.    
-    
-
 
     ```
     aws cloudformation create-stack --stack-name pattern1-logging \
                                     --template-body file://pattern1-logging.yml \
-                                    --parameters ParameterKey=AppECSTaskRoleArn,ParameterValue=<ECS Task role value> \
-                                                 ParameterKey=EmailAddress,ParameterValue=<Enter Email Address >\                                    
+                                    --parameters ParameterKey=AppECSTaskRoleArn,ParameterValue="<ECS Task Role ARN>" ParameterKey=EmailAddress,ParameterValue=< Email Address > \
                                     --capabilities CAPABILITY_NAMED_IAM \
                                     --region ap-southeast-2
     ```
 
-
-
-
     ###### Note :
       * For simplicity, we have used Sydney 'ap-southeast-2' as the default region for this lab. 
-      * Use the ECS Task Role Arn value you took note from section **1.3** for **AppECSTaskRoleArn** parameter.
+      * For < ECS Task Role ARN > Use the ECS Task Role Arn value you took note from section **1.3** for **AppECSTaskRoleArn** parameter.
       * Use email address you would like to use to be notified with under **EmailAddress** parameter. 
 
 ##### Console:
@@ -197,24 +201,232 @@ Download the template [here]
 4. Use the ECS Task Role Arn value you took note from section **1.3** for **AppECSTaskRoleArn** parameter.
 5. Use email address you would like to use to be notified with under **EmailAddress** parameter. 
 
-### 3.2 Deploy manually using Console.
+### 2.2 Deploy manually using Console.
 
-[The hard yard]
+### 2.2.1 Create CloudTrail 
+
+1. Navigate to **CloudTrail** within the console, then click on **Create trail** .
+
+    ![Section1 Cloudwatch Console ](images/section2/section2-create-trail.png)
+
+2. Enter `pattern1-logging-trail` as the Trail name.
+3. Select **Create new S3 bucket**  and enter a name for your s3 bucket (the name needs to be globally unique, so you can use your accountid or uuid to keep it unique for you.)
+4. Keep the rest of the settings as below screenshot:
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-trail2.png)
+
+5. Tick on **Enabled** under CloudWatch Logs.
+6. Select **New** on Log group, and enter your log group name as `pattern1-logging-loggroup`
+7. Select **New** on IAM Role, and enter your role name as `CloudTrailRoleForCloudWatchLogs_pattern1-logging`
+8. Click **Next**.
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-trail3.png)
+
+9. Make sure to select management events, read write API, and Ensure not to tick the exclude AWS KMS event, as screen shot below then click **Next**.
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-trail4.png)
+
+10. Review the settings and click **Create Trail**
+
+
+### 2.2.2 Confirm your CloudTrail log groups is working. 
+
+1. Navigate to **CloudWatch** in your console and click on **Log Groups** on the side menu.
+2. Locate the `pattern1-logging-loggroup` you created before and click on the the loggroup.
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-trail5.png)
+
+3. Click on the available log stream, and confirm that you are seeing logs being generated.
+   These are all the api calls that are being made in your account. What we are going to do next is we are going to filter out only the Events that matters for us to create the Alarm.
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-trail6.png)
+
+
+### 2.2.3 Create Cloudwatch Metric Alarm 
+
+#### 2.2.3.1
+
+1. Navigate to **CloudWatch** in your console and click on **Topics** on the side menu.
+2. Click on **Creata Topic**
+3. Choose the Standard Topic, and enter `pattern1-logging-topic` as the Name.
+4. Click on **Create topic**
+
+    ![Section2 Cloudwatch Alarm ](images/section2/section2-create-topic.png)
+
+5. On the Next Screen click **Create Subscription**
+
+    ![Section2 Cloudwatch Alarm ](images/section2/section2-create-sub.png)
+
+6. Change the protocol to **Email**
+7. Enter your email address as the **Endpoint**, then click **Create subscription**
+
+    ![Section2 Cloudwatch Alarm ](images/section2/section2-create-sub2.png)
+
+8. Wait for the subscription confirmation email to arrive in your inbox, and confirm the email once it's arrived.
+
+    ![Section2 Cloudwatch Alarm ](images/section2/section2-create-sub3.png)
+
+#### 2.2.3.2 Create the Metric Filter.
+
+We are now going to create the Filter to our CloudWatch Log Group, this filter will essentially generate a Cloudwatch metric which we will create our alarm against.
+
+1. Navigate to **CloudWatch** in your console and click on **Log Groups** on the side menu.
+2. Locate the `pattern1-logging-loggroup` you created before and click on the the loggroup.
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-trail5.png)
+
+3. Select the tick box beside the log groups, click on **Actions** then **Create metric filter**
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-metricfilter1.png)
+
+4. Enter below filter under **Filter pattern**
+  Replace < ECS Task Role ARN > with the value of **OutputPattern1ECSTaskRole** Outputs in the `pattern1-app` you took note on section **1.3**, then click **Next**
+
+
+  ```
+  { $.errorCode = "*" && $.eventSource= "kms.amazonaws.com" && $.userIdentity.sessionContext.sessionIssuer.arn = "<ECS Task Role ARN>" }
+  ```
+  ###### Note:
+  So, what are we doing here ? What are we filtering with this rule ? 
+  This rule will filter in CloudTrail Events with below conditions: 
+  
+  * When the KMS event is triggered by our application, the event registered in Cloudtrail will look as below 
+
+    ```
+      {
+          "eventVersion": "1.05",
+          "userIdentity": {
+              "type": "AssumedRole",
+              ...
+              "sessionContext": {
+                  "sessionIssuer": {
+                      "type": "Role",
+                      "principalId": "AROAQKTRYBJEYHGY4HLFO",
+                      "arn": "arn:aws:iam::xxxxxxxxxxx:role/pattern1-application-Pattern1ECSTaskRole",
+                      "accountId": "xxxxxxxxxxx",
+                      "userName": "pattern1-application-Pattern1ECSTaskRole"
+                  },
+              ...
+              }
+          },
+          "eventTime": "2020-11-16T22:25:39Z",
+          "eventSource": "kms.amazonaws.com",
+          "eventName": "Decrypt",
+          "awsRegion": "ap-southeast-2",
+          "errorCode": "IncorrectKeyException",
+          "errorMessage": "The key ID in the request does not identify a CMK that can perform this operation.",
+          .....
+          "responseElements": null,
+          "requestID": "11748bbd-ddcd-4ee2-9f42-9cec69f414b1",
+          "eventID": "1f620618-46e5-4f78-93cc-0b7bccfff5d2",
+          "readOnly": true,
+          "eventType": "AwsApiCall",
+          "recipientAccountId": "xxxxxxxxxxx"
+      }
+    ```
+  * Our filter essentially are filtering out based on the JSON Key that presented by this event.
+  * `$.eventSource` part of the filter filters in the EventSource of "kms.amazon.com" signifying that it is a KMS event.
+  * `$.errorCode` filters in if there is any value with key "ErrorCode" signifying that there is an Error.
+  * `$.userIdentity.sessionContext.sessionIssuer.arn` filters for the the userIdentity that executes the event was the assumed role that is used by ECS Task, signifying that this call was made from our application running in the container.
+  * For more information about CloudWatch Filter Syntax refer to this [guide](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html)
+
+5. Enter `pattern1-logging-metricfilter` as Filter name.
+6. Enter `Pattern1Application/KMSSecurity` as Metric namespace.
+7. `KMSSecurityError` as the Metric name.
+8. `1` as the Metric Value
+9. Click **Next** and **Create metric filter**
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-metricfilter2.png)
+
+#### 2.2.3.3 Create the Metric Alarm.
+
+
+Once this Metric filter has been created, you should be able to see this filter created under the **Metric filters** tab of your LogGroups. 
+
+1. Select the Metric filter you just created, then click on **CreateAlarm**
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-metricalarm1.png)
+
+2. This will take you to the section where you will configure your CloudWatch Alarm.
+    Change the period to `10seconds`.
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-metricalarm2.png)
+
+3. Set the Threshold type as `Static` condition as `Greater` and theshold value as `1` as shown in screen shot below 
+4. Select `Treat missing data as ignore` as the Missing data treatment value, and click **Next**
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-metricalarm3.png)
+
+5. Select `In alarm` as alarm trigger state.
+6. Select `Create new topic` , and enter `pattern1-logging-topic` as the name.
+7. Enter an email address where you would like to receive notification.
+8. Click **Create topic** then click **Next**
+
+    ![Section2 Cloudwatch Console ](images/section2/section2-create-metricalarm4.png)
+
+9. Enter `pattern1-logging-alarm` as the Alarm name and click **Next**
+10. Review the setting and click **Create Alarm**
+11. Wait for an email to arrive in your mailbox, and confirm subscription to you the topic once it arrives.
+
+    ![Section2 Cloudwatch Alarm ](images/section2/section2-create-sub3.png)
+
+You have completed creating the creation of the filter and alarm, let's now test it.  
 
 ---
 
-### 3.2.1 
+### 3. Testing Logging and Alarm.
+
+1. Once you have completed section **2** you can completed the CloudTrail and Alarm set up.
+  The next thing to do is run a decrypt API call to our application to test, as well as trigger a failed app decrypt procedure.
+
+    Run below command replacing the < encrypt key > with the key value that you took note on section **1.4** as well as the < Application endpoint URL > with the **OutputPattern1ApplicationEndpoint** url you took note on section **1.3**
+
+    ```
+    ALBURL="http://< Application endpoint URL >"
+
+    curl --header "Content-Type: application/json" --request GET --data '{"Name":"Stephen","Key":"<encrypt key>"}' $ALBURL/decrypt
+    ```
+    
+    Once that is successful, you should see out put like below
+
+    ```
+    {"Text":"I love Pizza"}
+    ```
+
+2. Now that we have confirmed that the decypt api works, let's trigger some decypt failure to invoke our alerting.
+   Run below command once again, but this time, pass on a wrong key for the encrypt key (you can just use whatever value).
+
+    ```
+    ALBURL="http://< Application endpoint URL >"
+
+    curl --header "Content-Type: application/json" --request GET --data '{"Name":"Stephen","Key":"some-random-false-key"}' $ALBURL/decrypt
+    ```
+
+    Once it is triggered, you should see output like below signifying that the decrypt procedure has failed, and in the background a failed KMS API has been called. :
+    
+    ```
+    {"Message":"Data decryption failed, make sure you have the correct key"}
+    ```
+
+    Repeat this several times in a row, to ensure you we are triggering the alarm.
+
+    **Alternatively**, you can run below script to continuously trigger the failed decrypt command (this will keep your CloudWath Alarm in later section to be in `Alarm` state while this script is running ).
+
+    ```
+    cd script/
+    bash ./brutescript.sh "http://< Application endpoint URL >""
+    ```
+
+### 3.1 Observing the alarm.
+
+1. If all the components are configured correctly, you should be seeing an email notification triggered by the CloudWatch alarm as below.
+2. Click on the URL included in the email that will take you to the CloudWatch Alarm resource in AWS console.
+
+    ![Section3 Cloudwatch Alarm ](images/section3/section3-cloudwatch-alarm1.png)
+
+3. Observe the state changes under the **History** section.
+
+    ![Section3 Cloudwatch Alarm ](images/section3/section3-cloudwatch-alarm2.png)
 
 
-### Test Application
-```
-curl --header "Content-Type: application/json" --request POST --data '{"Name":"John","Text":"I love dumplings"}' http://localhost:8080/encrypt
-curl --header "Content-Type: application/json" --request GET --data '{"Name":"John","Key":"a94cc58c-56c5-464b-8f05-604257bb2336"}' http://localhost:8080/decrypt
-
-curl --header "Content-Type: application/json" --request POST --data '{"Name":"Stephen","Text":"I love Pizza"}' patte-Patte-1D3Y1IXBO43P7-686158038.ap-southeast-2.elb.amazonaws.com/encrypt
-curl --header "Content-Type: application/json" --request GET --data '{"Name":"Stephen","Key":"afad2b1f-48b5-4eac-a226-dd014f59497c"}' patte-Patte-1D3Y1IXBO43P7-686158038.ap-southeast-2.elb.amazonaws.com/decrypt
-```
-
-### Filter.
-
-{ $.errorCode = "*" && $.eventSource= "kms.amazonaws.com" && $.userIdentity.sessionContext.sessionIssuer.arn = "arn:aws:iam::022787131977:role/pattern1-application-Pattern1ECSTaskRole" }
+[ Out Closing Narrative here.]
