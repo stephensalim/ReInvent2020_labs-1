@@ -180,7 +180,7 @@ Resources:
       ContainerDefinitions:
       - Name: simple-app
         Essential: 'true'
-        Image: 022787131977.dkr.ecr.ap-southeast-2.amazonaws.com/pattern1:latest
+        Image: !Ref ECRImageURI 
         LogConfiguration:
           LogDriver: awslogs
           Options:

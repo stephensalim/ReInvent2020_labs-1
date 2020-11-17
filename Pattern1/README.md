@@ -248,7 +248,7 @@ Download the template [here]
 
 ### 2.2.3 Create Cloudwatch Metric Alarm 
 
-#### 2.2.3.1
+<!-- #### 2.2.3.1
 
 1. Navigate to **CloudWatch** in your console and click on **Topics** on the side menu.
 2. Click on **Creata Topic**
@@ -268,9 +268,9 @@ Download the template [here]
 
 8. Wait for the subscription confirmation email to arrive in your inbox, and confirm the email once it's arrived.
 
-    ![Section2 Cloudwatch Alarm ](images/section2/section2-create-sub3.png)
+    ![Section2 Cloudwatch Alarm ](images/section2/section2-create-sub3.png) -->
 
-#### 2.2.3.2 Create the Metric Filter.
+#### 2.2.3.1 Create the Metric Filter.
 
 We are now going to create the Filter to our CloudWatch Log Group, this filter will essentially generate a Cloudwatch metric which we will create our alarm against.
 
@@ -342,7 +342,7 @@ We are now going to create the Filter to our CloudWatch Log Group, this filter w
 
     ![Section2 Cloudwatch Console ](images/section2/section2-create-metricfilter2.png)
 
-#### 2.2.3.3 Create the Metric Alarm.
+#### 2.2.3.2 Create the Metric Alarm.
 
 
 Once this Metric filter has been created, you should be able to see this filter created under the **Metric filters** tab of your LogGroups. 
