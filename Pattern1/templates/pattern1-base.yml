@@ -4,6 +4,11 @@ Outputs:
     Value: !Ref Pattern1VPC
     Export:
       Name: !Sub "${AWS::StackName}-VpcId"
+  OutputPattern1VPCCidrBlock:
+    Description: Baseline VPC Cidr Block
+    Value: !GetAtt Pattern1VPC.CidrBlock
+    Export:
+      Name: !Sub "${AWS::StackName}-VpcCidrBlock"      
   OutputPattern1PublicSubnet1:
     Description: Public Subnet 1 VPC
     Value: !Ref Pattern1PublicSubnet1

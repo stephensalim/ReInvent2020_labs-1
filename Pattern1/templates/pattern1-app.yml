@@ -283,6 +283,24 @@ Resources:
       MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref Pattern1RDSSecret, ':SecretString:username}}' ]]
       MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref Pattern1RDSSecret, ':SecretString:password}}' ]]
       DBSubnetGroupName: !Ref Pattern1RDSSubnetGroup
+      VPCSecurityGroups: 
+        - !Ref Pattern1RDSSecGroup
+
+
+  Pattern1RDSSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [!Ref 'AWS::StackName', -Pattern1RDSSecGroup]]
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${BaselineVpcStack}-VpcId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 
+            Fn::ImportValue:
+              !Sub "${BaselineVpcStack}-VpcCidrBlock"
 
   Pattern1RDSSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"
